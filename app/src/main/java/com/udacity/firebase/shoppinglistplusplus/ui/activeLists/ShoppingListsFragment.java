@@ -3,7 +3,6 @@ package com.udacity.firebase.shoppinglistplusplus.ui.activeLists;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +18,8 @@ import com.udacity.firebase.shoppinglistplusplus.R;
 import com.udacity.firebase.shoppinglistplusplus.model.ShoppingList;
 import com.udacity.firebase.shoppinglistplusplus.utils.Utils;
 
+import java.util.Date;
+
 
 /**
  * A simple {@link Fragment} subclass that shows a list of all shopping lists a user can see.
@@ -30,6 +31,7 @@ public class ShoppingListsFragment extends Fragment {
     private ListView mListView;
     private TextView mTextViewListName;
     private TextView mTextViewOwner;
+    private TextView mTextEditTime;
 
     public ShoppingListsFragment() {
         /* Required empty public constructor */
@@ -79,6 +81,9 @@ public class ShoppingListsFragment extends Fragment {
                 if (shoppingList!=null){
                     mTextViewListName.setText(shoppingList.getListName());
                     mTextViewOwner.setText(shoppingList.getOwner());
+                    Long date = shoppingList.getDateLastChangedLong();
+                    if (date!=null)
+                        mTextEditTime.setText(Utils.SIMPLE_DATE_FORMAT.format(new Date(date)));
                 }
             }
 
@@ -114,5 +119,6 @@ public class ShoppingListsFragment extends Fragment {
         mListView = (ListView) rootView.findViewById(R.id.list_view_active_lists);
         mTextViewListName = (TextView) rootView.findViewById(R.id.text_view_list_name);
         mTextViewOwner = (TextView) rootView.findViewById(R.id.text_view_created_by_user);
+        mTextEditTime = (TextView) rootView.findViewById(R.id.text_view_edit_time);
     }
 }
