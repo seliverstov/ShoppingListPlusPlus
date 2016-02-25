@@ -16,6 +16,8 @@ import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 import com.udacity.firebase.shoppinglistplusplus.R;
 import com.udacity.firebase.shoppinglistplusplus.model.ShoppingList;
+
+import com.udacity.firebase.shoppinglistplusplus.utils.Constants;
 import com.udacity.firebase.shoppinglistplusplus.utils.Utils;
 
 import java.util.Date;
@@ -29,9 +31,8 @@ import java.util.Date;
 public class ShoppingListsFragment extends Fragment {
     private static final String TAG = ShoppingListsFragment.class.getSimpleName() ;
     private ListView mListView;
-    private TextView mTextViewListName;
-    private TextView mTextViewOwner;
-    private TextView mTextEditTime;
+    private TextView mTextViewListName, mTextViewListOwner;
+    private TextView mTextViewEditTime;
 
     public ShoppingListsFragment() {
         /* Required empty public constructor */
@@ -68,7 +69,7 @@ public class ShoppingListsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         /**
-         * Initalize UI elements
+         * Initialize UI elements
          */
         View rootView = inflater.inflate(R.layout.fragment_shopping_lists, container, false);
         initializeScreen(rootView);
@@ -80,10 +81,49 @@ public class ShoppingListsFragment extends Fragment {
                 ShoppingList shoppingList = dataSnapshot.getValue(ShoppingList.class);
                 if (shoppingList!=null){
                     mTextViewListName.setText(shoppingList.getListName());
-                    mTextViewOwner.setText(shoppingList.getOwner());
-                    Long date = shoppingList.getDateLastChangedLong();
+                    mTextViewListOwner.setText(shoppingList.getOwner());
+                    Long date = shoppingList.getTimestampLastChangedLong();
                     if (date!=null)
-                        mTextEditTime.setText(Utils.SIMPLE_DATE_FORMAT.format(new Date(date)));
+                        mTextViewEditTime.setText(Utils.SIMPLE_DATE_FORMAT.format(new Date(date)));
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
+        /**
+         * Create Firebase references
+         */
+        Firebase refListName = new Firebase(Constants.FIREBASE_URL).child("activeList");
+
+        /**
+         * Add ValueEventListeners to Firebase references
+         * to control get data and control behavior and visibility of elements
+         */
+        refListName.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // You can use getValue to deserialize the data at dataSnapshot
+                // into a ShoppingList.
+                ShoppingList shoppingList = dataSnapshot.getValue(ShoppingList.class);
+
+                // If there was no data at the location we added the listener, then
+                // shoppingList will be null.
+                if (shoppingList != null) {
+                    // If there was data, take the TextViews and set the appropriate values.
+                    mTextViewListName.setText(shoppingList.getListName());
+                    mTextViewListOwner.setText(shoppingList.getOwner());
+                    if (shoppingList.getTimestampLastChanged() != null) {
+                        mTextViewEditTime.setText(
+                                Utils.SIMPLE_DATE_FORMAT.format(
+                                        new Date(shoppingList.getTimestampLastChangedLong())));
+                    } else {
+                        mTextViewEditTime.setText("");
+                    }
+
                 }
             }
 
@@ -117,8 +157,9 @@ public class ShoppingListsFragment extends Fragment {
      */
     private void initializeScreen(View rootView) {
         mListView = (ListView) rootView.findViewById(R.id.list_view_active_lists);
+        // Get the TextViews in the single_active_list layout for list name, edit time and owner
         mTextViewListName = (TextView) rootView.findViewById(R.id.text_view_list_name);
-        mTextViewOwner = (TextView) rootView.findViewById(R.id.text_view_created_by_user);
-        mTextEditTime = (TextView) rootView.findViewById(R.id.text_view_edit_time);
+        mTextViewListOwner = (TextView) rootView.findViewById(R.id.text_view_created_by_user);
+        mTextViewEditTime = (TextView) rootView.findViewById(R.id.text_view_edit_time);
     }
 }
